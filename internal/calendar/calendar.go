@@ -4,7 +4,6 @@ import (
 	"github.com/karasunokami/go.otus.hw/calendar/internal/dal"
 	"github.com/karasunokami/go.otus.hw/calendar/internal/db"
 	"github.com/sirupsen/logrus"
-	"log"
 	"time"
 )
 
@@ -28,6 +27,12 @@ func NewCalendar(client db.Client, logger logrus.FieldLogger) *calendarImpl {
 }
 
 func (s *calendarImpl) CreateEvent(startDatetime, endDatetime time.Time) (db.EventId, error) {
+	logFields := logrus.Fields{
+		"module": "calendar",
+		"util":   "calendar",
+		"cmp":    "CreateEvent",
+	}
+
 	evt := dal.Event{
 		Title:         "",
 		StartDatetime: startDatetime,
@@ -36,16 +41,22 @@ func (s *calendarImpl) CreateEvent(startDatetime, endDatetime time.Time) (db.Eve
 
 	id, err := s.client.Create(evt)
 	if err != nil {
-		log.Printf("Failed to create dal: %s", err)
+		s.logger.WithFields(logFields).WithError(err).Error("Failed to create event")
 	}
 
 	return id, nil
 }
 
 func (s *calendarImpl) GetEvent(id db.EventId) (dal.Event, error) {
+	logFields := logrus.Fields{
+		"module": "calendar",
+		"util":   "calendar",
+		"cmp":    "GetEvent",
+	}
+
 	evt, err := s.client.Get(id)
 	if err != nil {
-		log.Printf("Failed to get dal: %s", err)
+		s.logger.WithFields(logFields).WithError(err).Error("Failed to get event")
 	}
 
 	return evt, nil

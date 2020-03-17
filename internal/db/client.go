@@ -5,15 +5,27 @@ import (
 	"time"
 )
 
-type Client struct {
+type Client interface {
+	Create(event dal.Event) (EventId, error)
+
+	Delete(id EventId) error
+
+	Update(id EventId, event dal.Event) error
+
+	Get(id EventId) (dal.Event, error)
+}
+
+type clientImpl struct {
 	events map[EventId]dal.Event
 }
 
+type EventId int
+
 func NewClient() Client {
-	return Client{events: make(map[EventId]dal.Event)}
+	return &clientImpl{events: make(map[EventId]dal.Event)}
 }
 
-func (c *Client) Get(id EventId) (dal.Event, error) {
+func (c *clientImpl) Get(id EventId) (dal.Event, error) {
 	if !c.eventExists(id) {
 		return dal.Event{}, EventNotFoundError
 	}
@@ -21,7 +33,7 @@ func (c *Client) Get(id EventId) (dal.Event, error) {
 	return c.events[id], nil
 }
 
-func (c *Client) Create(event dal.Event) (EventId, error) {
+func (c *clientImpl) Create(event dal.Event) (EventId, error) {
 	if busy := !c.isTimeAvailable(event.StartDatetime); busy {
 		return 0, TimeBusyError
 	}
@@ -32,7 +44,7 @@ func (c *Client) Create(event dal.Event) (EventId, error) {
 	return eventId, nil
 }
 
-func (c *Client) Update(id EventId, event dal.Event) error {
+func (c *clientImpl) Update(id EventId, event dal.Event) error {
 	if !c.eventExists(id) {
 		return EventNotFoundError
 	}
@@ -45,7 +57,7 @@ func (c *Client) Update(id EventId, event dal.Event) error {
 	return nil
 }
 
-func (c *Client) Delete(id EventId) error {
+func (c *clientImpl) Delete(id EventId) error {
 	if !c.eventExists(id) {
 		return EventNotFoundError
 	}
@@ -55,7 +67,7 @@ func (c *Client) Delete(id EventId) error {
 	return nil
 }
 
-func (c Client) isTimeAvailable(time time.Time) bool {
+func (c clientImpl) isTimeAvailable(time time.Time) bool {
 	for _, evt := range c.events {
 		if evt.StartDatetime == time {
 			return false
@@ -65,7 +77,7 @@ func (c Client) isTimeAvailable(time time.Time) bool {
 	return true
 }
 
-func (c Client) eventExists(id EventId) bool {
+func (c clientImpl) eventExists(id EventId) bool {
 	_, ok := c.events[id]
 
 	return ok
