@@ -2,24 +2,23 @@
 
 PROJECTNAME="calendar"
 
-# Redirect error output to a file, so we can show it in development mode.
-STDERR=/tmp/.$(PROJECTNAME)-stderr.txt
-
-# PID file will keep the process id of the server
-PID=/tmp/.$(PROJECTNAME).pid
-
 # Make is verbose in Linux. Make it silent.
 MAKEFLAGS += --silent
 
-install: go-get
+## test: run all tests
+test:
+	@echo "  >  Running all tests"
+	go test ./...
 
+## build: build source in dist/
 build:
 	@echo "  >  Building binary..."
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o dist/$(PROJECTNAME)d $(GOFILES)
+	go build -o dist/$(PROJECTNAME) cmd/$(PROJECTNAME)/main.go
 
-go-get:
+## install: run go get
+install:
 	@echo "  >  Checking if there is any missing dependencies..."
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go get $(get)
+	go get ./...
 
 .PHONY: help
 all: help
@@ -28,4 +27,4 @@ help: Makefile
 	@echo " Choose a command run in "$(PROJECTNAME)":"
 	@echo
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
-	@echoo
+	@echo
