@@ -2,12 +2,6 @@
 
 PROJECTNAME="calendar"
 
-# Go related variables.
-GOBASE=$(shell pwd)
-GOPATH="$(GOBASE)/vendor:$(GOBASE)"
-GOBIN=$(GOBASE)/bin
-GOFILES=$(wildcard *.go)
-
 # Redirect error output to a file, so we can show it in development mode.
 STDERR=/tmp/.$(PROJECTNAME)-stderr.txt
 
