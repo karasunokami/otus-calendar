@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"time"
 )
 
 type Builder interface {
@@ -23,8 +24,9 @@ func NewBuilder() Builder {
 func (b *builderImpl) Build(path string) *AppConfig {
 	b.config = AppConfig{
 		HttpListen: HttpListen{
-			Ip:   "127.0.0.1",
-			Port: "1080",
+			Ip:          "127.0.0.1",
+			Port:        "1080",
+			ConnTimeout: time.Second * 10,
 		},
 		Log: Log{
 			LogFile:  "/var/log/calendar",

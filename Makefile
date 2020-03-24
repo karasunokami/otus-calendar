@@ -20,6 +20,9 @@ install:
 	@echo "  >  Checking if there is any missing dependencies..."
 	go get ./...
 
+gen:
+	protoc --go_out=plugins=grpc:. internal/api/proto/*.proto
+
 .PHONY: help
 all: help
 help: Makefile

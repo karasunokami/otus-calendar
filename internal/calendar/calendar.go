@@ -8,13 +8,13 @@ import (
 )
 
 type Calendar interface {
-	GetEvent(id db.EventId) (dal.Event, error)
+	GetEvent(id string) (dal.Event, error)
 
-	CreateEvent(startTime time.Time, stopTime time.Time) (db.EventId, error)
+	CreateEvent(title string, startTime time.Time, endTime time.Time) (*dal.Event, error)
 
-	UpdateEvent(id db.EventId, event dal.Event) error
+	UpdateEvent(event dal.Event) error
 
-	DeleteEvent(id db.EventId) error
+	DeleteEvent(id string) error
 }
 
 type calendarImpl struct {
@@ -26,22 +26,22 @@ func NewCalendar(client db.Client, logger logrus.FieldLogger) *calendarImpl {
 	return &calendarImpl{client: client, logger: logger}
 }
 
-func (s *calendarImpl) CreateEvent(startDatetime, endDatetime time.Time) (db.EventId, error) {
+func (s *calendarImpl) CreateEvent(title string, startTime time.Time, endTime time.Time) (*dal.Event, error) {
 	evt := dal.Event{
-		Title:         "",
-		StartDatetime: startDatetime,
-		EndDatetime:   endDatetime,
+		Title:     title,
+		StartTime: startTime,
+		EndTime:   endTime,
 	}
 
-	id, err := s.client.Create(evt)
+	event, err := s.client.Create(&evt)
 	if err != nil {
-		return db.EventId(0), err
+		return nil, err
 	}
 
-	return id, nil
+	return event, nil
 }
 
-func (s *calendarImpl) GetEvent(id db.EventId) (dal.Event, error) {
+func (s *calendarImpl) GetEvent(id string) (dal.Event, error) {
 	evt, err := s.client.Get(id)
 	if err != nil {
 		return evt, err
@@ -50,10 +50,10 @@ func (s *calendarImpl) GetEvent(id db.EventId) (dal.Event, error) {
 	return evt, nil
 }
 
-func (s *calendarImpl) UpdateEvent(id db.EventId, event dal.Event) error {
-	return s.client.Update(id, event)
+func (s *calendarImpl) UpdateEvent(event dal.Event) error {
+	return s.client.Update(event)
 }
 
-func (s *calendarImpl) DeleteEvent(id db.EventId) error {
+func (s *calendarImpl) DeleteEvent(id string) error {
 	return s.client.Delete(id)
 }

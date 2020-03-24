@@ -2,30 +2,29 @@ package db
 
 import (
 	"github.com/karasunokami/go.otus.hw/calendar/internal/dal"
+	uuid "github.com/satori/go.uuid"
 	"time"
 )
 
 type Client interface {
-	Create(event dal.Event) (EventId, error)
+	Create(event *dal.Event) (*dal.Event, error)
 
-	Delete(id EventId) error
+	Delete(id string) error
 
-	Update(id EventId, event dal.Event) error
+	Update(event dal.Event) error
 
-	Get(id EventId) (dal.Event, error)
+	Get(id string) (dal.Event, error)
 }
 
 type clientImpl struct {
-	events map[EventId]dal.Event
+	events map[string]dal.Event
 }
-
-type EventId int
 
 func NewClient() Client {
-	return &clientImpl{events: make(map[EventId]dal.Event)}
+	return &clientImpl{events: make(map[string]dal.Event)}
 }
 
-func (c *clientImpl) Get(id EventId) (dal.Event, error) {
+func (c *clientImpl) Get(id string) (dal.Event, error) {
 	if !c.eventExists(id) {
 		return dal.Event{}, EventNotFoundError
 	}
@@ -33,31 +32,35 @@ func (c *clientImpl) Get(id EventId) (dal.Event, error) {
 	return c.events[id], nil
 }
 
-func (c *clientImpl) Create(event dal.Event) (EventId, error) {
-	if busy := !c.isTimeAvailable(event.StartDatetime); busy {
-		return 0, TimeBusyError
+func (c *clientImpl) Create(event *dal.Event) (*dal.Event, error) {
+	if busy := !c.isTimeAvailable(event.StartTime); busy {
+		return (*dal.Event)(nil), TimeBusyError
 	}
 
-	eventId := EventId(len(c.events) + 1)
-	c.events[eventId] = event
+	event.ID = uuid.NewV4()
+	c.events[event.ID.String()] = *event
 
-	return eventId, nil
+	return event, nil
 }
 
-func (c *clientImpl) Update(id EventId, event dal.Event) error {
-	if !c.eventExists(id) {
-		return EventNotFoundError
+func (c *clientImpl) Update(event dal.Event) error {
+	fetched, err := c.Get(event.ID.String())
+	if err != nil {
+		return err
 	}
 
-	if busy := !c.isTimeAvailable(event.StartDatetime); busy {
-		return TimeBusyError
+	if fetched.StartTime != event.StartTime || fetched.EndTime != fetched.EndTime {
+		if busy := !c.isTimeAvailable(event.StartTime); busy {
+			return TimeBusyError
+		}
 	}
 
-	c.events[id] = event
+	c.events[event.ID.String()] = event
+
 	return nil
 }
 
-func (c *clientImpl) Delete(id EventId) error {
+func (c *clientImpl) Delete(id string) error {
 	if !c.eventExists(id) {
 		return EventNotFoundError
 	}
@@ -69,7 +72,7 @@ func (c *clientImpl) Delete(id EventId) error {
 
 func (c clientImpl) isTimeAvailable(time time.Time) bool {
 	for _, evt := range c.events {
-		if evt.StartDatetime == time {
+		if evt.StartTime == time {
 			return false
 		}
 	}
@@ -77,7 +80,7 @@ func (c clientImpl) isTimeAvailable(time time.Time) bool {
 	return true
 }
 
-func (c clientImpl) eventExists(id EventId) bool {
+func (c clientImpl) eventExists(id string) bool {
 	_, ok := c.events[id]
 
 	return ok

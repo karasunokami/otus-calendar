@@ -1,10 +1,13 @@
 package dal
 
-import "time"
+import (
+	"github.com/satori/go.uuid"
+	"time"
+)
 
 type Event struct {
-	ID            int
-	Title         string
-	StartDatetime time.Time
-	EndDatetime   time.Time
+	ID        uuid.UUID
+	Title     string
+	StartTime time.Time
+	EndTime   time.Time
 }

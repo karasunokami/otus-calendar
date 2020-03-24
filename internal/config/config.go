@@ -1,12 +1,15 @@
 package config
 
+import "time"
+
 type Config interface {
 	Parse(path string) *AppConfig
 }
 
 type HttpListen struct {
-	Ip   string `yaml:"ip"`
-	Port string `yaml:"port"`
+	Ip          string        `yaml:"ip"`
+	Port        string        `yaml:"port"`
+	ConnTimeout time.Duration `yaml:"conn_timeout"`
 }
 
 type Log struct {

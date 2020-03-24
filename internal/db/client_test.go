@@ -19,15 +19,15 @@ func (s *ClientTestSuite) SetupTest() {
 	timeFrom := time.Now()
 	s.events = []dal.Event{
 		{
-			Title:         "1",
-			StartDatetime: timeFrom,
-			EndDatetime:   timeFrom.Add(time.Minute * 30),
+			Title:     "1",
+			StartTime: timeFrom,
+			EndTime:   timeFrom.Add(time.Minute * 30),
 		},
 		{
 
-			Title:         "2",
-			StartDatetime: timeFrom.Add(time.Minute * 30 * 2),
-			EndDatetime:   timeFrom.Add(time.Minute*30*2 + time.Minute*30),
+			Title:     "2",
+			StartTime: timeFrom.Add(time.Minute * 30 * 2),
+			EndTime:   timeFrom.Add(time.Minute*30*2 + time.Minute*30),
 		},
 	}
 
@@ -35,49 +35,53 @@ func (s *ClientTestSuite) SetupTest() {
 }
 
 func (s *ClientTestSuite) TestClientCreate() {
-	_, err := s.client.Create(s.events[0])
+	_, err := s.client.Create(&s.events[0])
 
 	s.NoError(err)
 }
 
 func (s *ClientTestSuite) TestClientDelete() {
-	id, _ := s.client.Create(s.events[0])
-	err := s.client.Delete(id)
+	evt, _ := s.client.Create(&s.events[0])
+	err := s.client.Delete(evt.ID.String())
 
 	s.NoError(err)
 }
 
 func (s *ClientTestSuite) TestClientUpdate() {
-	id, _ := s.client.Create(s.events[0])
+	evt, err := s.client.Create(&s.events[0])
 
-	err := s.client.Update(id, s.events[1])
 	s.NoError(err)
 
-	evt, err := s.client.Get(id)
+	evt.Title = "new"
+	err = s.client.Update(*evt)
 	s.NoError(err)
 
-	s.Equal(s.events[1].Title, evt.Title)
+	fetched, err := s.client.Get(evt.ID.String())
+
+	s.NoError(err)
+
+	s.Equal("new", fetched.Title)
 }
 
 func (s *ClientTestSuite) TestClientGet() {
-	id, _ := s.client.Create(s.events[0])
+	evt, _ := s.client.Create(&s.events[0])
 
-	evt, err := s.client.Get(id)
+	newEvt, err := s.client.Get(evt.ID.String())
 	s.NoError(err)
 
-	s.Equal(s.events[0].Title, evt.Title)
+	s.Equal(s.events[0].Title, newEvt.Title)
 }
 
 func (s *ClientTestSuite) TestCreateWithSameDate() {
-	_, err := s.client.Create(s.events[0])
+	_, err := s.client.Create(&s.events[0])
 	s.NoError(err)
 
-	_, err = s.client.Create(s.events[0])
+	_, err = s.client.Create(&s.events[0])
 	s.EqualError(err, "time is busy")
 }
 
 func (s *ClientTestSuite) TestGetNotFound() {
-	_, err := s.client.Get(1)
+	_, err := s.client.Get("")
 	s.EqualError(err, "dal not found")
 }
 
