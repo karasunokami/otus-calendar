@@ -21,7 +21,7 @@ install:
 	go get ./...
 
 gen:
-	protoc --go_out=plugins=grpc:. internal/api/proto/*.proto
+	protoc --go_out=plugins=grpc:pkg api/*.proto
 
 .PHONY: help
 all: help

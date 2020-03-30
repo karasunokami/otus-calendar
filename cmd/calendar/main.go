@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/karasunokami/go.otus.hw/calendar/internal/api/server"
 	"github.com/karasunokami/go.otus.hw/calendar/internal/app"
 	"github.com/karasunokami/go.otus.hw/calendar/internal/calendar"
 	"github.com/karasunokami/go.otus.hw/calendar/internal/config"
 	"github.com/karasunokami/go.otus.hw/calendar/internal/db"
 	"github.com/karasunokami/go.otus.hw/calendar/internal/logger"
+	"github.com/karasunokami/go.otus.hw/calendar/internal/server"
 )
 
 func main() {

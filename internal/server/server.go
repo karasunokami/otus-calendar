@@ -2,9 +2,9 @@ package server
 
 import (
 	"context"
-	api "github.com/karasunokami/go.otus.hw/calendar/internal/api/proto"
 	"github.com/karasunokami/go.otus.hw/calendar/internal/calendar"
 	"github.com/karasunokami/go.otus.hw/calendar/internal/config"
+	api "github.com/karasunokami/go.otus.hw/calendar/pkg/api"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
@@ -14,6 +14,9 @@ type Server interface {
 	Run() error
 
 	CreateEvent(_ context.Context, req *api.CreateEventRequest) (*api.CreateEventResponse, error)
+	UpdateEvent(_ context.Context, req *api.UpdateEventRequest) (*api.UpdateEventResponse, error)
+	GetEvent(_ context.Context, req *api.GetEventRequest) (*api.GetEventResponse, error)
+	DeleteEvent(_ context.Context, req *api.DeleteEventRequest) (*api.DeleteEventResponse, error)
 }
 
 type serverImpl struct {
