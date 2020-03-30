@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	api "github.com/karasunokami/go.otus.hw/calendar/internal/api/proto"
 	"github.com/karasunokami/go.otus.hw/calendar/internal/dal"
 	"github.com/karasunokami/go.otus.hw/calendar/internal/db"
+	api "github.com/karasunokami/go.otus.hw/calendar/pkg/api"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
