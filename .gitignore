@@ -1,6 +1,2 @@
 .idea
-
-dist/
-vendor
-
-calendar.log
+deployments/.env
