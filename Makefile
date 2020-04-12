@@ -1,33 +1,55 @@
--include .env
-
+PROJECT?="github.com/karasunokami/otus-calendar"
 PROJECTNAME="calendar"
+DOCKER=docker-compose -f deployments/docker-compose.yml --project-directory deployments
 
-# Make is verbose in Linux. Make it silent.
-MAKEFLAGS += --silent
+COMMIT := $(shell git rev-parse --short HEAD)
+VERSION := $(shell git describe --tags --abbrev=0)
+BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 
-## test: run all tests
-test:
-	@echo "  >  Running all tests"
-	go test ./...
-
-## build: build source in dist/
-build:
-	@echo "  >  Building binary..."
-	go build -o dist/$(PROJECTNAME) cmd/$(PROJECTNAME)/main.go
-
-## install: run go get
-install:
-	@echo "  >  Checking if there is any missing dependencies..."
-	go get ./...
-
-gen:
-	protoc --go_out=plugins=grpc:pkg api/*.proto
-
-.PHONY: help
-all: help
 help: Makefile
-	@echo
-	@echo " Choose a command run in "$(PROJECTNAME)":"
-	@echo
+	@echo "Choose a command run in "$(PROJECTNAME)":"
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
-	@echo
+
+## build: Build application
+build:
+	@for type in "api" "scheduler" "notificator" ; do \
+		CGO_ENABLED=0 go build \
+			-ldflags="-w -s -X ${PROJECT}/internal/version.Commit=${COMMIT} \
+			-X ${PROJECT}/internal/version.Version=${VERSION} \
+			-X ${PROJECT}/internal/version.BuildTime=${BUILD_TIME}" \
+			-o ./bin/$(PROJECTNAME)-$$type ./cmd/$$type/ ; \
+		done
+
+## start: Start application in docker containers with hot reload
+start:
+	@$(DOCKER) up -d --build
+
+## stop: Stop application and remove docker containers
+stop:
+	@$(DOCKER) down --remove-orphans
+
+## genproto: Generate gRPC interfaces by proto files
+genproto:
+	@protoc grpc/proto/*.proto --go_out=plugins=grpc:.
+
+## migrate: Apply all migrations
+migrate:
+	@$(DOCKER) run --rm migrations up
+
+## migrate-down: Rollback migrations
+migrate-down:
+	@$(DOCKER) run --rm migrations down
+
+## migrate-status: Rollback migrations
+migrate-status:
+	@$(DOCKER) run --rm migrations status
+
+## test: Start tests
+test:
+	@go test ./...
+
+## lint: Check source code by linters
+lint:
+	@echo "Checking go vet..." && go vet ./... && echo "Done!\n"
+	@echo "Checking golint..." && golint ./... && echo "Done!\n"
+	@echo "Checking golangci-lint..." && golangci-lint run ./... && echo "Done!"
